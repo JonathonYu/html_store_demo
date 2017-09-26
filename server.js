@@ -4,6 +4,7 @@ var path = require('path');
 var express = require('express');
 var bodyParser = require('body-parser');
 var validator = require('express-validator');
+var uuid = require('uuid');
 
 var db = require('./db');
 
@@ -22,10 +23,18 @@ app.post('/', async (req, res) => {
   console.log("POST request received");
   req.checkBody('url', "Enter a valid url").isURL();
   //req.validationErrors for handling
-  
   let url = req.body.url;
   let html = await htmlRequest(url);
+  let jobID = uuid();
   console.log('html: ', html);
+  db.create({
+    jobID: jobID,
+    html: html
+  }, err => {
+    if(err) {
+      return res.status(500).send("Database create document error");
+    }
+  });
   res.status(200).send(html);
 });
 
