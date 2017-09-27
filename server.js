@@ -6,35 +6,35 @@ var bodyParser = require('body-parser');
 var validator = require('express-validator');
 var uuid = require('uuid');
 
-// var db = require('./db');
+var db = require('./db');
 
 var app = express();
 
 //middleware
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
-app.use(validator);
+app.use(validator());
 
 var server = http.createServer(app);
-
 app.use(express.static(path.resolve(__dirname, 'client')));
 
 app.post('/', async (req, res) => {
   console.log("POST request received");
   req.checkBody('url', "Enter a valid url").isURL();
   //req.validationErrors for handling
-  let url = req.body.url;
+   let url = req.body.url;
   let html = await htmlRequest(url);
   let jobID = uuid();
   console.log('html: ', html);
-  // db.create({
-  //   jobID: jobID,
-  //   html: html
-  // }, err => {
-  //   if(err) {
-  //     return res.status(500).send("Database create document error");
-  //   }
-  // });
+  db.create({
+    jobID: jobID,
+    html: html
+  }, err => {
+    if(err) {
+      return res.status(500).send("Database create document error");
+    }
+  });
+  console.log("uuid: ", jobID);
   res.status(200).send(html);
 });
 
@@ -42,12 +42,14 @@ app.get('/', (req, res) => {
   console.log("GET request received");
   req.checkQuery('id', "Enter a correctly-formatted UUID").isUUID();
   let jobID = req.query.id;
-  // db.findOne({
-  //   jobID: jobID
-  // }, 'html', ()=>{
-    
-  // });
-  // res.status(200).send(db.html);
+  db.findOne({
+    jobID: jobID
+  }, 'html', (err, job) => {
+    if(err) {
+      return res.status(500).send("db find returned error"); //check docs; specify if it's simply not found
+    }
+    res.status(200).send(job);
+  });
 });
 
 app.put('/',(req, res) => {
