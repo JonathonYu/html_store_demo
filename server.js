@@ -6,7 +6,7 @@ var bodyParser = require('body-parser');
 var validator = require('express-validator');
 var uuid = require('uuid');
 
-var db = require('./db');
+// var db = require('./db');
 
 var app = express();
 
@@ -27,25 +27,32 @@ app.post('/', async (req, res) => {
   let html = await htmlRequest(url);
   let jobID = uuid();
   console.log('html: ', html);
-  db.create({
-    jobID: jobID,
-    html: html
-  }, err => {
-    if(err) {
-      return res.status(500).send("Database create document error");
-    }
-  });
+  // db.create({
+  //   jobID: jobID,
+  //   html: html
+  // }, err => {
+  //   if(err) {
+  //     return res.status(500).send("Database create document error");
+  //   }
+  // });
   res.status(200).send(html);
 });
 
 app.get('/', (req, res) => {
   console.log("GET request received");
-
+  req.checkQuery('id', "Enter a correctly-formatted UUID").isUUID();
+  let jobID = req.query.id;
+  // db.findOne({
+  //   jobID: jobID
+  // }, 'html', ()=>{
+    
+  // });
+  // res.status(200).send(db.html);
 });
 
 app.put('/',(req, res) => {
   console.log("PUT request received");
-  
+  res.status(200).send("Put request received");
 });
 
 app.delete('/', (req, res) => {
@@ -55,7 +62,7 @@ app.delete('/', (req, res) => {
 
 server.listen(process.env.PORT || 3000, process.env.IP || "0.0.0.0", function(){
   var addr = server.address();
-  console.log("Chat server listening at", addr.address + ":" + addr.port);
+  console.log("Server listening at", addr.address + ":" + addr.port);
 });
 
 async function htmlRequest(url){
